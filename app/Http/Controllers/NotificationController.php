@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Notification;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class NotificationController extends Controller
 {
@@ -24,13 +26,32 @@ class NotificationController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'id_notice' => 'required|exists:notices,id',
-            'alias' => 'required|string',
-        ]);
+        try {
+            $validatedData = $request->validate([
+                'id_notice' => 'required|exists:notices,id',
+                'alias' => 'required|string|max:255',
+            ], [
+                'id_notice.exists' => 'O campo id_notice deve referenciar um id válido na tabela notices.',
+            ]);
+            $notification = Notification::create($validatedData);
 
-        $notification = Notification::create($request->all());
-        return response()->json($notification, 201);
+            return response()->json([
+                'message' => 'Notificação criada com sucesso',
+                'data' => $notification
+            ], 201);
+
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => 'Erro de validação',
+                'errors' => $e->errors()
+            ], 422);
+
+        } catch (QueryException $e) {
+            return response()->json([
+                'message' => 'Erro ao criar a notificação: chave estrangeira inválida ou erro de banco de dados',
+                'error' => $e->getMessage()
+            ], 400);
+        }
     }
 
     public function update(Request $request, $id)
