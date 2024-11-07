@@ -3,6 +3,7 @@
 use App\Http\Controllers\NoticeController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\NotificationUserController;
+use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -24,3 +25,4 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::apiResource('notification-users', NotificationUserController::class);
 Route::apiResource('notifications', NotificationController::class);
 Route::apiResource('notices', NoticeController::class);
+Route::apiResource('users', UserController::class);

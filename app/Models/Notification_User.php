@@ -9,6 +9,8 @@ class Notification_User extends Model
 {
     use HasFactory;
 
+    // Foi necessário especificar o nome para o mysql encontrar a tabela
+    protected $table = 'notification_users';
     protected $fillable = [
         'id_notification',
         'id_user',
