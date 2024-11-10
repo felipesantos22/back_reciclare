@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
 
 class UserController extends Controller
 {
@@ -30,20 +31,32 @@ class UserController extends Controller
     // Criar um novo usuário
     public function store(Request $request)
     {
-        $validatedData = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|unique:users,email',
-            'password' => 'required|string|min:6',
-        ]);
+        try {
+            $validatedData = $request->validate([
+                'name' => 'required|string|max:255',
+                'email' => 'required|string|email|unique:users,email',
+                'password' => 'required|string|min:6',
+            ]);
 
-        $validatedData['password'] = Hash::make($validatedData['password']);
+            $validatedData['password'] = Hash::make($validatedData['password']);
 
-        $user = User::create($validatedData);
+            $user = User::create($validatedData);
 
-        return response()->json([
-            'message' => 'Usuário criado com sucesso',
-            'data' => $user
-        ], 201);
+            return response()->json([
+                'message' => 'Usuário criado com sucesso',
+                'data' => $user
+            ], 201);
+
+        } catch (ValidationException $e) {
+            if ($e->validator->fails() && $e->validator->errors()->has('email')) {
+                return response()->json([
+                    'message' => 'O e-mail já está em uso',
+                    'errors' => $e->validator->errors()->get('email')
+                ], 422);
+            }
+
+            throw $e;
+        }
     }
 
     // Atualizar um usuário existente
